@@ -5,7 +5,10 @@ import fi.natroutter.modelselector.handlers.ModelHandler;
 import fi.natroutter.modelselector.object.Model;
 import fi.natroutter.modelselector.utils.Theme;
 import fi.natroutter.natlibs.handlers.guibuilder.*;
+import fi.natroutter.natlibs.objects.BaseItem;
+import fi.natroutter.natlibs.utilities.Parser;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
@@ -31,11 +34,11 @@ public class GiveGUI extends GUIFrame {
         if (modelHandler.hasModel(category)) {
             Model model = modelHandler.getModel(category);
             List<Button> buttons = model.getOverrides().stream().map(m->
-                    Buttons.give(category, m)
+                    Buttons.give(player, category, m)
             ).toList();
 
             gui.paginateButtons(buttons);
-            gui.setButton(Buttons.back(), Rows.row6, 4);
+            gui.setButton(Buttons.back(ModelSelector.getCategoryGUI()), Rows.row6, 4);
             gui.addNavigator(
                     new Navigator(Buttons.previous(), Rows.row6, 3),
                     new Navigator(Buttons.next(), Rows.row6, 5)

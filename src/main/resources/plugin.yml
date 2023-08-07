@@ -1,11 +1,11 @@
 name: ModelSelector
 version: '${project.version}'
 main: fi.natroutter.modelselector.ModelSelector
-api-version: 1.19
+api-version: 1.18
 authors: [NATroutter]
 description: Generates simple gui where you can take your custom models
 website: https://NATroutter.fi
 depend: [NATLibs]
 libraries:
    - org.jsoup:jsoup:1.16.1
-   - net.lingala.zip4j:zip4j:2.11.5
+   - commons-io:commons-io:2.13.0

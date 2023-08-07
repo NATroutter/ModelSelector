@@ -1,10 +1,13 @@
 package fi.natroutter.modelselector.commands;
 
 import fi.natroutter.modelselector.ModelSelector;
+import fi.natroutter.modelselector.files.Config;
 import fi.natroutter.modelselector.guis.CategoryGUI;
+import fi.natroutter.modelselector.guis.ColorGUI;
 import fi.natroutter.modelselector.guis.GiveGUI;
 import fi.natroutter.modelselector.handlers.ModelHandler;
 import fi.natroutter.modelselector.handlers.PackHandler;
+import fi.natroutter.modelselector.object.Color;
 import fi.natroutter.modelselector.utils.Theme;
 import fi.natroutter.natlibs.utilities.Utilities;
 import org.bukkit.command.Command;
@@ -29,7 +32,7 @@ public class ModelSelectorCMD extends Command {
 
 
     @Override
-    public boolean execute(@NotNull CommandSender sender, @NotNull String commandLabel, @NotNull String[] args) {
+    public boolean execute(@NotNull CommandSender sender, @NotNull String lable, @NotNull String[] args) {
         if (!(sender instanceof Player p)) {
             sender.sendMessage(Theme.withPrefix("This command can only be used ingame!"));
             return false;
@@ -52,26 +55,61 @@ public class ModelSelectorCMD extends Command {
             switch (args[0].toLowerCase()) {
                 case "help":
                     p.sendMessage(Theme.headerC());
-                    p.sendMessage(Theme.help("/ModelSelector", "Opens the category selection gui"));
-                    p.sendMessage(Theme.help("/ModelSelector open <category>", "Opens specified category gui"));
-                    p.sendMessage(Theme.help("/ModelSelector help", "Shows this help page"));
-                    p.sendMessage(Theme.help("/ModelSelector reinstall", "Reinstall all models"));
+                    p.sendMessage(Theme.help("/" + lable, " Opens the category selection gui"));
+                    p.sendMessage(Theme.help("/"+ lable +  " open <category>", "Opens specified category gui"));
+                    p.sendMessage(Theme.help("/"+ lable +  " help", "Shows this help page"));
+                    p.sendMessage(Theme.help("/"+ lable +  " reinstall", "Reinstall all models"));
+                    p.sendMessage(Theme.help("/"+ lable +  " reload", "Reloads configuration"));
+                    p.sendMessage(Theme.help("/"+ lable + " color <r,g,b>", "Set dyeable model color"));
                     p.sendMessage(Theme.headerC());
                     break;
+                case "reload":
+                    Config.UseOverride.reloadFile();
+                    p.sendMessage(Theme.withPrefix("Configuration reloaded!"));
+                    break;
                 case "reinstall":
-                    packHandler.reinstall();
-                    modelHandler.loadToCache();
-                    p.sendMessage(Theme.withPrefix("Reinstalled all models!"));
+                    if (packHandler.reinstall()) {
+                        modelHandler.loadToCache();
+                        p.sendMessage(Theme.withPrefix("Reinstalled all models!"));
+                    } else {
+                        p.sendMessage(Theme.withPrefix("Failed to reinstall models, see console for more info!"));
+                    }
                     break;
                 default:
-                    p.sendMessage(Theme.withPrefix("Usage: " + Theme.highlight("/ModelSelector help")));
+                    p.sendMessage(Theme.withPrefix("Usage: " + Theme.highlight("/"+lable+" help")));
                     break;
             }
         } else if (args.length == 2) {
             switch (args[0].toLowerCase()) {
+                case "color":
+                    if (!args[1].contains(",")) {
+                        p.sendMessage(Theme.withPrefix("Invalid color!"));
+                        return false;
+                    }
+                    String[] color = args[1].split(",");
+                    if (color.length != 3) {
+                        p.sendMessage(Theme.withPrefix("Invalid color!"));
+                        return false;
+                    }
+                    try {
+                        int r = Integer.parseInt(color[0]);
+                        int g = Integer.parseInt(color[1]);
+                        int b = Integer.parseInt(color[2]);
+                        if ((r > 255 || g > 255 || b > 255) || (r < 0 || g < 0 || b < 0)) {
+                            p.sendMessage(Theme.withPrefix("Invalid color!"));
+                            return false;
+                        }
+                        ColorGUI.selectedColor.put(p.getUniqueId(), new Color(r, g, b));
+                        p.sendMessage(Theme.withPrefix("Color set to: &c" + r + "&7, &a" + g + "&7, &b" + b));
+                    } catch (Exception e) {
+                        p.sendMessage(Theme.withPrefix("Invalid color!"));
+                        return false;
+                    }
+                    break;
+
                 case "open":
                     if (modelHandler.hasModel(args[1].toLowerCase())) {
-                        giveGUI.show(p, Arrays.asList(args[1].toLowerCase()));
+                        giveGUI.show(p, List.of(args[1].toLowerCase()));
                         p.sendMessage(Theme.withPrefix("Opened category: " + Theme.highlight(args[1].toLowerCase())));
                     } else {
                         p.sendMessage(Theme.withPrefix("Category not found!"));
@@ -89,10 +127,15 @@ public class ModelSelectorCMD extends Command {
         }
 
         if (args.length == 1) {
-            return Utilities.getCompletes(sender, args[0], Arrays.asList("help", "open", "reinstall"));
+            return Utilities.getCompletes(sender, args[0], Arrays.asList("help", "open", "reinstall", "reload", "color"));
         } else if (args.length == 2) {
             if (args[0].equalsIgnoreCase("open")) {
                 return Utilities.getCompletes(sender, args[1], modelHandler.getModelNames());
+            } else if (args[0].equalsIgnoreCase("color")) {
+                if (sender instanceof Player p) {
+                    Color c = ColorGUI.selectedColor.getOrDefault(p.getUniqueId(), new Color(0,0,0));
+                    return Utilities.getCompletes(sender, args[1], List.of(c.getR() +"," + c.getG() + "," + c.getB()));
+                }
             }
         }
 

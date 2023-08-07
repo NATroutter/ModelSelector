@@ -3,8 +3,10 @@ package fi.natroutter.modelselector.guis;
 
 import fi.natroutter.modelselector.ModelSelector;
 import fi.natroutter.modelselector.handlers.ModelHandler;
+import fi.natroutter.modelselector.object.Items;
 import fi.natroutter.modelselector.utils.Theme;
 import fi.natroutter.natlibs.handlers.guibuilder.*;
+import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
@@ -38,6 +40,7 @@ public class CategoryGUI extends GUIFrame {
                 new Navigator(Buttons.next(), Rows.row6, 5)
         );
 
+        gui.setButton(new SwitchButton(Items.editColor(), ModelSelector.getColorGUI()), Rows.row6, 0);
 
         if (gui.getMaxPages() > 1) {
             gui.setRawTitle(Theme.prefix("ModelSelector") + Theme.separator(" <page>/<max_page>"));
